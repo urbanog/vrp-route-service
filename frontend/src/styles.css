@@ -1,0 +1,80 @@
+@import '@fontsource-variable/archivo/wdth.css';
+
+/*
+ * Palette: a surveyor's sheet. Cool blue-grey paper, graphite ink, and route colours spaced by
+ * the golden angle (see route-colors.ts) so that every van gets its own hue.
+ */
+:root {
+  --paper: #eef1f4;
+  --sheet: #f8fafb;
+  --ink: #1d2733;
+  --ink-soft: #566373;
+  --grid: #d9dfe6;
+  --rule: #c5ced8;
+  --signal: #1f5fbf;
+  --danger: #a3281d;
+  --route-l: 0.56;
+  --route-c: 0.17;
+
+  --font: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #151b22;
+    --sheet: #1b232c;
+    --ink: #e4e9ef;
+    --ink-soft: #9aa7b6;
+    --grid: #26303b;
+    --rule: #34404d;
+    --signal: #7fb0ff;
+    --danger: #ff8b7e;
+    --route-l: 0.74;
+    --route-c: 0.15;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #151b22;
+  --sheet: #1b232c;
+  --ink: #e4e9ef;
+  --ink-soft: #9aa7b6;
+  --grid: #26303b;
+  --rule: #34404d;
+  --signal: #7fb0ff;
+  --danger: #ff8b7e;
+  --route-l: 0.74;
+  --route-c: 0.15;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+a {
+  color: var(--signal);
+}

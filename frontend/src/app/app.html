@@ -1,0 +1,208 @@
+<div class="sheet">
+  <header class="masthead">
+    <h1>Route planner</h1>
+    <p class="lede">
+      One depot, a fleet of identical vans, and customers with orders to deliver. The solver finds routes
+      that serve everyone, never overload a van, and drive as little as possible.
+    </p>
+  </header>
+
+  <section class="map-panel" aria-label="Map">
+    <app-route-map [instance]="instance()" [result]="result()" [focus]="focus()" />
+    @if (instance(); as inst) {
+      <p class="map-caption">
+        <span class="key-depot" aria-hidden="true"></span> depot
+        <span class="key-customer" aria-hidden="true"></span> customer, area proportional to demand
+      </p>
+    } @else {
+      <p class="map-empty">Choose an instance to see it on the map.</p>
+    }
+  </section>
+
+  <section class="controls" aria-label="Instance and solver">
+    <fieldset>
+      <legend>Instance</legend>
+      <div class="segmented" role="radiogroup" aria-label="Instance source">
+        @for (s of [['bundled', 'Benchmark'], ['generate', 'Random'], ['upload', 'Upload .vrp']]; track s[0]) {
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="source() === s[0]"
+            [class.on]="source() === s[0]"
+            (click)="setSource($any(s[0]))"
+          >
+            {{ s[1] }}
+          </button>
+        }
+      </div>
+
+      @switch (source()) {
+        @case ('bundled') {
+          <label class="field">
+            <span>Benchmark</span>
+            <select [value]="bundledName()" (change)="loadBundled($any($event.target).value)">
+              @for (c of catalog(); track c.name) {
+                <option [value]="c.name" [selected]="c.name === bundledName()">
+                  {{ c.name }}: {{ c.customers }} customers, at least {{ c.minVehicles }} vans
+                </option>
+              }
+            </select>
+          </label>
+        }
+        @case ('generate') {
+          <div class="row">
+            <label class="field">
+              <span>Customers</span>
+              <input type="number" min="1" max="500" [value]="genCustomers()" (input)="genCustomers.set(numberInput($event))" />
+            </label>
+            <label class="field">
+              <span>Stops per van</span>
+              <input type="number" min="1" max="500" [value]="genRouteSize()" (input)="genRouteSize.set(numberInput($event))" />
+            </label>
+            <label class="field">
+              <span>Seed</span>
+              <input type="number" [value]="genSeed()" (input)="genSeed.set(numberInput($event))" />
+            </label>
+          </div>
+          <div class="row">
+            <label class="field">
+              <span>Layout</span>
+              <select [value]="genLayout()" (change)="genLayout.set($any($event.target).value)">
+                <option value="clustered">Clustered towns</option>
+                <option value="uniform">Spread evenly</option>
+              </select>
+            </label>
+            <button type="button" class="secondary" (click)="generate()" [disabled]="busy()">Generate</button>
+          </div>
+        }
+        @case ('upload') {
+          <label class="field">
+            <span>CVRPLIB / TSPLIB file (EUC_2D)</span>
+            <input type="file" accept=".vrp,.txt" (change)="upload($event)" />
+          </label>
+        }
+      }
+
+      @if (instance(); as inst) {
+        <p class="facts">
+          <strong>{{ inst.name }}</strong>: {{ inst.customers.length }} customers, van capacity {{ inst.capacity }},
+          total demand {{ totalDemand() }}, so at least {{ minVehicles() }} vans.
+        </p>
+      }
+    </fieldset>
+
+    <fieldset>
+      <legend>Solver</legend>
+      <div class="segmented" role="radiogroup" aria-label="Algorithm">
+        @for (a of algorithms; track a.value) {
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="algorithm() === a.value"
+            [class.on]="algorithm() === a.value"
+            (click)="algorithm.set(a.value)"
+          >
+            {{ a.label }}
+          </button>
+        }
+      </div>
+      <p class="hint">{{ algorithmHint() }}</p>
+      <div class="row">
+        @if (algorithm() === 'annealing') {
+          <label class="field">
+            <span>Time limit (ms)</span>
+            <input type="number" min="1" max="60000" step="500" [value]="timeLimitMs()" (input)="timeLimitMs.set(numberInput($event))" />
+          </label>
+        }
+        <label class="field">
+          <span>Seed</span>
+          <input type="number" [value]="seed()" (input)="seed.set(numberInput($event))" />
+        </label>
+        <label class="field">
+          <span>Request</span>
+          <select [value]="mode()" (change)="mode.set($any($event.target).value)">
+            <option value="sync">Wait for answer</option>
+            <option value="job">Background job</option>
+          </select>
+        </label>
+      </div>
+      <button type="button" class="primary" (click)="solve()" [disabled]="busy() || !instance() || exactTooLarge()">
+        {{ busy() && status() ? status() : 'Plan routes' }}
+      </button>
+      @if (exactTooLarge()) {
+        <p class="hint warn">Exact search is limited to 12 customers. Pick another algorithm or a smaller instance.</p>
+      }
+    </fieldset>
+
+    @if (problem(); as p) {
+      <div class="problem" role="alert">
+        <p><strong>{{ p.title }}</strong>@if (p.detail) {. {{ p.detail }}}</p>
+        @if (p.errors?.length) {
+          <ul>
+            @for (e of p.errors; track e.field) {
+              <li><code>{{ e.field }}</code> {{ e.message }}</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </section>
+
+  @if (result(); as r) {
+    <section class="results" aria-label="Solution">
+      <div class="headline">
+        <p class="cost">
+          <span class="value">{{ r.cost | number: '1.0-1' }}</span>
+          <span class="unit">total distance</span>
+        </p>
+        <dl class="stats">
+          <div><dt>Vans</dt><dd>{{ r.vehicles }}</dd></div>
+          <div>
+            <dt>Lower bound</dt>
+            <dd>{{ r.lowerBound | number: '1.0-0' }}</dd>
+          </div>
+          <div>
+            <dt [attr.title]="r.optimal ? null : '(distance − lower bound) / distance; the lower bound is weak, so the true gap is smaller'">
+              {{ r.optimal ? 'Optimality' : 'Gap to lower bound' }}
+            </dt>
+            <dd>{{ r.optimal ? 'proven' : (r.gapToLowerBound | percent) }}</dd>
+          </div>
+          <div>
+            <dt>Saved vs. savings start</dt>
+            <dd>{{ improvement() | percent: '1.1-1' }}</dd>
+          </div>
+          <div><dt>Runtime</dt><dd>{{ r.runtimeMs | number }} ms</dd></div>
+          @if (r.iterations) {
+            <div><dt>Iterations</dt><dd>{{ r.iterations | number }}</dd></div>
+          }
+        </dl>
+      </div>
+
+      <ol class="route-list" (mouseleave)="focus.set(null)">
+        @for (route of r.routes; track $index; let i = $index) {
+          <li
+            tabindex="0"
+            [style.--c]="color(i)"
+            (mouseenter)="focus.set(i)"
+            (focus)="focus.set(i)"
+            (blur)="focus.set(null)"
+          >
+            <span class="swatch" aria-hidden="true"></span>
+            <span class="route-name">Van {{ i + 1 }}</span>
+            <span class="stops">{{ route.customers.length }} stops</span>
+            <span class="load" [attr.aria-label]="'load ' + route.load + ' of ' + instance()!.capacity">
+              <span class="bar"><span [style.width.%]="(100 * route.load) / instance()!.capacity"></span></span>
+              {{ route.load }}/{{ instance()!.capacity }}
+            </span>
+            <span class="dist">{{ route.cost | number: '1.0-0' }}</span>
+          </li>
+        }
+      </ol>
+    </section>
+  }
+
+  <footer class="colophon">
+    Java 21 backend with no dependencies, Angular front end.
+    <a href="https://github.com/urbanog/vrp-route-service">Source and benchmarks</a>
+  </footer>
+</div>

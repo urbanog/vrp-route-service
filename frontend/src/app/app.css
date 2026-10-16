@@ -1,0 +1,362 @@
+/*
+ * Layout: the map is the page. On wide screens it takes the left two thirds as a square sheet,
+ * with controls and results stacked to its right; on phones everything stacks, map first.
+ */
+:host {
+  display: block;
+}
+
+.sheet {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2.5rem;
+}
+
+@media (min-width: 960px) {
+  .sheet {
+    grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+    grid-template-areas:
+      'head head'
+      'map controls'
+      'map results'
+      'foot foot';
+    align-items: start;
+    gap: 1.5rem 2.5rem;
+    padding: 2.5rem 2rem 3rem;
+  }
+  .masthead { grid-area: head; }
+  .map-panel { grid-area: map; position: sticky; top: 1.5rem; }
+  .controls { grid-area: controls; }
+  .results { grid-area: results; }
+  .colophon { grid-area: foot; }
+}
+
+/* ---------------------------------------------------------------- masthead */
+
+.masthead h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  line-height: 1;
+  font-weight: 800;
+  font-stretch: 68%;
+  letter-spacing: -0.01em;
+}
+
+.lede {
+  margin: 0.75rem 0 0;
+  max-width: 62ch;
+  color: var(--ink-soft);
+  font-size: 1.0625rem;
+}
+
+/* ---------------------------------------------------------------- map */
+
+.map-panel {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  padding: 0.75rem;
+}
+
+.map-caption,
+.map-empty {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.key-depot,
+.key-customer {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+}
+
+.key-depot {
+  background: var(--ink);
+}
+
+.key-customer {
+  margin-left: 0.75rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+}
+
+/* ---------------------------------------------------------------- controls */
+
+fieldset {
+  border: 0;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  min-width: 0;
+}
+
+legend {
+  padding: 0;
+  margin-bottom: 0.6rem;
+  font-weight: 700;
+  font-stretch: 85%;
+  font-size: 1.25rem;
+}
+
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--rule);
+  background: var(--sheet);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.segmented button {
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 0;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--rule);
+}
+
+.segmented button.on {
+  color: var(--sheet);
+  background: var(--ink);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.85rem;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  min-width: 0;
+}
+
+.row .field {
+  flex: 1 1 7rem;
+}
+
+input,
+select {
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  padding: 0.45rem 0.55rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+input[type='file'] {
+  padding: 0.35rem;
+}
+
+.facts {
+  margin: 0.85rem 0 0;
+  font-size: 0.9375rem;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+
+.hint.warn {
+  color: var(--danger);
+}
+
+button.primary,
+button.secondary {
+  font: inherit;
+  font-weight: 650;
+  border: 1px solid var(--ink);
+  cursor: pointer;
+  padding: 0.6rem 1.1rem;
+}
+
+button.primary {
+  margin-top: 1rem;
+  width: 100%;
+  font-size: 1.0625rem;
+  font-stretch: 85%;
+  background: var(--ink);
+  color: var(--sheet);
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--ink);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.problem {
+  border-left: 3px solid var(--danger);
+  padding: 0.5rem 0.85rem;
+  background: var(--sheet);
+}
+
+.problem p {
+  margin: 0;
+}
+
+.problem ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.875rem;
+}
+
+.problem code {
+  font-size: 0.8125rem;
+}
+
+/* ---------------------------------------------------------------- results */
+
+.headline {
+  border-top: 2px solid var(--ink);
+  padding-top: 0.75rem;
+}
+
+.cost {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.cost .value {
+  font-size: clamp(2.5rem, 6vw, 3.25rem);
+  font-weight: 800;
+  font-stretch: 68%;
+  line-height: 1;
+}
+
+.cost .unit {
+  color: var(--ink-soft);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.6rem 1rem;
+  margin: 1rem 0 0;
+}
+
+.stats div {
+  min-width: 0;
+}
+
+.stats dt {
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+
+.stats dd {
+  margin: 0;
+  font-weight: 650;
+}
+
+.route-list {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.route-list li {
+  display: grid;
+  grid-template-columns: 0.9rem 4.5rem 1fr auto;
+  grid-template-areas: 'sw name load dist' 'sw stops load dist';
+  column-gap: 0.65rem;
+  align-items: center;
+  padding: 0.45rem 0.25rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.9375rem;
+  cursor: default;
+}
+
+.route-list li:hover,
+.route-list li:focus-visible {
+  background: var(--sheet);
+}
+
+.swatch {
+  grid-area: sw;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  background: var(--c);
+}
+
+.route-name {
+  grid-area: name;
+  font-weight: 650;
+}
+
+.stops {
+  grid-area: stops;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+
+.load {
+  grid-area: load;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+
+.bar {
+  flex: 1;
+  height: 0.4rem;
+  background: var(--grid);
+  max-width: 9rem;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--c);
+}
+
+.dist {
+  grid-area: dist;
+  font-weight: 650;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------- footer */
+
+.colophon {
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--rule);
+  padding-top: 0.75rem;
+}
