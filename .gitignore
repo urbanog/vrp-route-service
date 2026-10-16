@@ -1,0 +1,17 @@
+# Java build outputs
+target/
+out/
+*.class
+
+# Frontend
+node_modules/
+dist/
+.angular/
+coverage/
+
+# Editors and OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
