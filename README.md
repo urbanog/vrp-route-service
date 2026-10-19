@@ -108,7 +108,7 @@ Reproduce with `./build.sh bench [timeLimitMs] [seeds]`. Times depend on the mac
 │            RouteApi + Router  pure handlers: Request → Response         │
 │            ApiCodec           JSON ⇄ domain, collects all field errors  │
 │ jobs/      JobService         async solves on virtual threads,          │
-│                               Semaphore caps CPU-bound concurrency      │
+│                               Semaphore caps concurrent async jobs      │
 │            JobRepository ◄─── InMemoryJobRepository (PostgreSQL: see db)│
 │ solver/    CvrpSolver → ClarkeWright, LocalSearch, SimulatedAnnealing,  │
 │                         RuinRecreate, ExactSolver, LowerBound           │
@@ -131,6 +131,9 @@ Design decisions:
 - **Virtual threads with a concurrency cap.** Each request and each job gets a virtual thread,
   which is cheap. The solver is CPU-bound, so a fair `Semaphore` (default: number of cores)
   limits how many jobs compute at once. The rest wait as `QUEUED` without holding OS threads.
+  The cap covers only asynchronous jobs (`POST /api/jobs`). A synchronous `POST /api/solve` runs
+  the solver directly on its request thread and does not take a permit, so concurrent synchronous
+  requests are limited only by their own time limits.
 - **Persistence behind an interface.** `JobRepository` is a port. No JDBC driver could be
   downloaded in the development environment, so only the in-memory adapter exists.
   [`db/schema.sql`](db/schema.sql) contains the PostgreSQL table with the job state machine as
@@ -212,8 +215,10 @@ curl -s -X POST localhost:8080/api/solve -H 'Content-Type: application/json' \
 
 - **43 backend tests** in 8 classes. They include property-based tests on 145 random instances:
   every algorithm must return a feasible solution, and costs must satisfy
-  `LB ≤ exact ≤ annealing ≤ local search ≤ savings`. The exact DP is checked against an
-  independent brute force (all permutations plus the split DP). Other tests cover the JSON
+  `LB ≤ exact ≤ annealing ≤ local search ≤ savings`. The step `annealing ≤ local search` is not
+  a property of annealing in general: it holds here because, for the same seed, annealing first
+  runs the identical local search on the savings solution and then returns the best solution it
+  has seen. The exact DP is checked against an independent brute force (all permutations plus the split DP). Other tests cover the JSON
   round trip on 500 random trees, TSPLIB parsing with line-numbered errors, every HTTP error
   path, concurrent requests over a real socket, and the async job lifecycle.
 - **6 frontend tests** (Vitest + jsdom): the TSPLIB parser, the route-colour spacing, SVG

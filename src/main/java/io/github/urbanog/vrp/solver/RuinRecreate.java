@@ -11,9 +11,9 @@ import java.util.Random;
  * <p>Ruin removes a random seed customer together with its {@code q-1} nearest neighbours, which
  * opens up a geographic region that local search alone cannot reorganise. Recreate re-inserts the
  * removed customers one by one (in an order drawn uniformly from: largest demand first, farthest
- * from the depot first, or random) at the cheapest
- * capacity-feasible position over all routes, opening a new route only if no existing route has
- * room. Cost: {@code O(q * n)} per call.
+ * from the depot first, or random) at the cheapest capacity-feasible position over all routes. A
+ * new route {@code (0, u, 0)} is opened whenever it is cheaper than every feasible insertion, in
+ * particular when no existing route has room. Cost: {@code O(q * n)} per call.
  */
 final class RuinRecreate {
     private final Problem p;

@@ -67,8 +67,10 @@ after:   ... a → b → ... → a⁺ → b⁺ ...      (segment a⁺..b reverse
 ```
 
 The load of the route does not change, so 2-opt is always capacity-feasible. Its classic use is
-to remove crossings. If two edges `(a,a⁺)` and `(b,b⁺)` cross, the triangle inequality makes
-`Δ < 0`. The implementation tries both variants that make the two chosen customers `u, v`
+to remove crossings. For Euclidean distances, if two edges `(a,a⁺)` and `(b,b⁺)` cross, the
+triangle inequality gives `Δ ≤ 0`, with `Δ < 0` when the crossing is non-degenerate (the four
+points are not collinear). With TSPLIB-rounded distances the triangle inequality can fail by
+rounding, so even `Δ ≤ 0` is not guaranteed; the implementation only ever uses the computed `Δ`. The implementation tries both variants that make the two chosen customers `u, v`
 adjacent: reversing after `u`, or reversing up to `v`.
 
 ### Relocate (intra- and inter-route)
@@ -142,14 +144,17 @@ when it is low.
 fraction of the time limit and the fraction of the iteration cap. Then
 
 ```
-T(f) = T₀ · (T₁ / T₀)^f,       T₀ = 0.02 · c(start) / ln 2,       T₁ = T₀ / 1000.
+T(f) = T₀ · (T₁ / T₀)^f,       T₀ = 0.02 · c(x₀) / ln 2,       T₁ = T₀ / 1000,
 ```
 
-`T₀` is chosen so that a candidate 2% worse than the start solution is accepted with probability
-½ at the beginning. At the end, the same deterioration is accepted with probability
+where `x₀` is the starting solution of the annealing loop: the savings solution after one run of
+local search (the same local optimum that `local-search` returns for that seed). `T₀` is chosen so
+that a candidate 2% worse than `x₀` is accepted with probability ½ at the beginning. At the end, the same deterioration is accepted with probability
 `2^(−1000)`, which is effectively never, so the search becomes a pure descent. Because the
 schedule is defined by *progress* rather than iteration count, it works the same with a 200 ms
-or a 60 s budget. The best solution ever seen is returned, not the current one.
+or a 60 s budget. The best solution ever seen is returned, not the current one. Since `x₀` is
+the first best solution, the result is never worse than `x₀`; this, and not any general property
+of annealing, is why the tests can require `annealing ≤ local search` for the same seed.
 
 **Determinism.** All randomness comes from one seeded `java.util.Random`. With a fixed seed and an
 iteration cap (`maxIterations`) the output is bit-for-bit reproducible. With only a time limit it

@@ -16,8 +16,8 @@ import java.util.Random;
  * {@code f ∈ [0,1)}, {@code T = T0 * (T1/T0)^f}, where {@code f} is the larger of the elapsed
  * fraction of the time limit and of the iteration cap. The schedule therefore adapts to however
  * many iterations fit in the budget. {@code T0} is set so that a candidate 2% worse than the start is
- * accepted with probability 1/2, and {@code T1 = T0 / 1000}. The best solution ever seen is
- * returned.
+ * accepted with probability 1/2, where the start is the given solution after one local search, and
+ * {@code T1 = T0 / 1000}. The best solution ever seen is returned.
  */
 final class SimulatedAnnealing {
     record Result(WorkingSolution best, long iterations, long accepted, long improvements) {}

@@ -17,7 +17,9 @@ import org.junit.jupiter.api.Test;
 /**
  * Property-based tests: on many random instances every algorithm must return a feasible solution
  * (every customer exactly once, capacity respected, reported loads and costs correct), and the
- * costs must be ordered {@code LB <= exact <= annealing <= local search <= savings}.
+ * costs must be ordered {@code LB <= exact <= annealing <= local search <= savings}. The step
+ * {@code annealing <= local search} holds by construction: with the same seed, annealing starts
+ * from exactly the local-search solution and returns the best solution it has seen.
  */
 class SolverPropertiesTest {
     private final CvrpSolver solver = new CvrpSolver();

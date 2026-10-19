@@ -20,7 +20,8 @@ import java.util.List;
  * </ol>
  *
  * <p>With unlimited fleet size this is exactly the CVRP optimum. Feasible for {@code n ≤ 12}
- * (about 0.6M Held–Karp states and 0.5M partition steps).
+ * ({@code 2^12 · 12 = 49,152} Held–Karp states with about 0.6M transitions, and {@code (3^12 - 1)/2
+ * = 265,720} partition steps).
  */
 public final class ExactSolver {
     public static final int MAX_CUSTOMERS = 12;
